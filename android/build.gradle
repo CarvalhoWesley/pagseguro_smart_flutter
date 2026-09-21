@@ -2,14 +2,14 @@ group 'dev.gabul.pagseguro_smart_flutter'
 version '1.0'
 
 buildscript {
-    ext.kotlin_version = '1.6.10'
+    ext.kotlin_version = '1.9.24'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:8.6.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -35,8 +35,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -45,7 +45,7 @@ android {
 }
 
 dependencies{
-    implementation 'br.com.uol.pagseguro.plugpagservice.wrapper:wrapper:1.29.5'
+    implementation 'br.com.uol.pagseguro.plugpagservice.wrapper:wrapper:1.35.0'
     implementation 'com.google.dagger:dagger:2.38.1'
     annotationProcessor "com.google.dagger:dagger-compiler:2.38.1"
     implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
