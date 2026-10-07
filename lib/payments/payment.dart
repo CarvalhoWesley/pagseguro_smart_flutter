@@ -180,6 +180,21 @@ class Payment {
     }
   }
 
+  //Function to print an image from its bytes (PNG, JPEG, BMP, WEBP...)
+  Future<bool> printerFromBytes(Uint8List bytes) async {
+    try {
+      await channel.invokeMethod(
+        PaymentTypeCall.PRINTER_BYTES.method,
+        {
+          "bytes": bytes,
+        },
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   //Reboot device
   Future<bool> rebootDevice() async {
     try {

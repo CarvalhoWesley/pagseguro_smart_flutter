@@ -16,6 +16,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   bot_toast: ^4.0.4
   flutter_masked_text2: ^0.9.1
+  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:

@@ -1,11 +1,14 @@
 package dev.gabul.pagseguro_smart_flutter.printer.usecase;
 
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -34,47 +37,29 @@ public class PrinterUsecase {
         this.mFragment = new PaymentsFragment(channel);
     }
 
-    public void printerFromFile(String path) {
-        try {
-            mFragment.onAuthProgress("Iniciando impressão");
-            mFragment.onMessage("Iniciando impressão");
-            //String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/teste.jpg";
+    public Observable<ActionResult> printerFromFile(String path) {
+
+        return Observable.create((ObservableEmitter<ActionResult> emitter) -> {
             File file = new File(path);
-            if(!file.exists()) {
-                mFragment.onMessage("O arquivo informado não foi encontrado.");
-                mFragment.onError("Arquivo não encontrado no diretório: " + file.getAbsolutePath());
+            if (!file.exists()) {
+                emitter.onError(new FileNotFoundException(file.getAbsolutePath()));
                 return;
             }
 
-            PlugPagPrinterData printerData = new PlugPagPrinterData(file.getAbsolutePath(), 4, 0);
-            PlugPagPrinterListener listener = new PlugPagPrinterListener() {
-                @Override
-                public void onSuccess(PlugPagPrintResult plugPagPrintResult) {
-                    String message = plugPagPrintResult.getMessage();
-                    int resultPrinter = plugPagPrintResult.getResult();
-                    mFragment.onMessage(resultPrinter + message);
-                    mFragment.onAuthProgress(resultPrinter + message);
+            PlugPagPrintResult result = mPlugpag.printFromFile(
+                    new PlugPagPrinterData(
+                            file.getAbsolutePath(),
+                            4,
+                            0));
 
-                }
-                @Override
-                public void onError(PlugPagPrintResult plugPagPrintResult) {
-                    String errorMessage = "Error message: " + plugPagPrintResult.getMessage();
-                    String errorCode = "Error code" + plugPagPrintResult.getErrorCode();
-                    mFragment.onError(errorCode + errorMessage);
-                    mFragment.onMessage("Erro ao realizar impressão");
-                }
-            };
+            ActionResult actionResult = new ActionResult();
+            actionResult.setResult(result.getResult());
+            actionResult.setMessage(result.getMessage());
+            actionResult.setErrorCode(result.getErrorCode());
 
-            mPlugpag.setPrinterListener(listener);
-            mPlugpag.printFromFile(printerData);
-
-            mFragment.onMessage("Impressão finalizada");
-            mFragment.onAuthProgress("Impressão finalizada");
-        }catch(Exception e) {
-            mFragment.onMessage("Erro: " + e.getMessage());
-            mFragment.onAuthProgress("Erro ao realizar impressão");
-            mFragment.onError("Erro impressão: " + e.getMessage());
-        }
+            emitter.onNext(actionResult);
+            emitter.onComplete();
+        });
     }
 
     public Observable<ActionResult> printFile(String fileName) {
@@ -176,6 +161,50 @@ public class PrinterUsecase {
                mFragment.onError("Erro impressão: " + e.getMessage());
                emitter.onError(e);
            }
+        });
+    }
+
+    public Observable<ActionResult> printerFromBytes(byte[] bytes, File cacheDir) {
+
+        return Observable.create((ObservableEmitter<ActionResult> emitter) -> {
+            ActionResult actionResult = new ActionResult();
+            File file = null;
+            try {
+                if (bytes == null || bytes.length == 0) {
+                    throw new IllegalArgumentException("Nenhum byte de imagem informado");
+                }
+
+                // Decodifica e regrava em PNG para aceitar qualquer formato suportado pelo Android
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                if (bitmap == null) {
+                    throw new IllegalArgumentException("Os bytes informados não são uma imagem válida");
+                }
+
+                file = File.createTempFile("print_", ".png", cacheDir);
+                try (FileOutputStream out = new FileOutputStream(file)) {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                }
+                bitmap.recycle();
+
+                PlugPagPrintResult result = mPlugpag.printFromFile(
+                        new PlugPagPrinterData(
+                                file.getAbsolutePath(),
+                                4,
+                                0));
+
+                actionResult.setResult(result.getResult());
+                actionResult.setMessage(result.getMessage());
+                actionResult.setErrorCode(result.getErrorCode());
+
+                emitter.onNext(actionResult);
+                emitter.onComplete();
+            } catch (Exception e) {
+                emitter.onError(e);
+            } finally {
+                if (file != null) {
+                    file.delete();
+                }
+            }
         });
     }
 

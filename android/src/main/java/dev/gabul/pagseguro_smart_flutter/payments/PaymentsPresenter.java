@@ -159,15 +159,19 @@ public class PaymentsPresenter {
         .subscribeOn(Schedulers.io())
         .doOnSubscribe(disposable -> mFragment.onLoading(true))
         .doOnComplete(() -> {
-            mFragment.onLoading(false);
             mFragment.onMessage("Terminal ativado");
             mFragment.onAuthProgress("Terminal ativado");
             mFragment.disposeDialog();
+            mFragment.onLoading(false);
             Log.d("print", "*** pinpad ativado ");
         })
         .doOnDispose(() -> mFragment.disposeDialog())
         .subscribe(
-          actionResult -> mFragment.onAuthProgress(actionResult.getMessage()),
+          actionResult -> {
+            if (actionResult.getMessage() != null) {
+              mFragment.onAuthProgress(actionResult.getMessage());
+            }
+          },
           throwable -> {
               mFragment.onLoading(false);
               mFragment.onMessage("Error ao ativar terminal");

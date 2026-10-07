@@ -246,6 +246,10 @@ Deve-se verificar se seu projeto tem a permissão de acesso aos arquivos dentro 
 
 `PagseguroSmart.instance().payment.printerfromFile(path)` => Fornecer o caminho absoluto ao arquivo que deve ser impresso.
 
+#### Imprimir uma imagem a partir dos bytes
+
+`PagseguroSmart.instance().payment.printerFromBytes(bytes)` => Fornecer os bytes (`Uint8List`) de uma imagem (PNG, JPEG, BMP, WEBP...). Não é necessário salvar o arquivo antes: o plugin grava um arquivo temporário no armazenamento externo do app, imprime e o remove em seguida.
+
 #### Imprimir um widget
 
 Basta chamar a função abaixo, passando o widget a ser impresso pela POS.

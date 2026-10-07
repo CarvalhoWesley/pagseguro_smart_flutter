@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
 
 import 'payment/payment_page.dart';
+import 'printer/printer_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,7 +24,7 @@ class _MyAppState extends State<MyApp> {
       builder: BotToastInit(), //1. call BotToastInit
 
       home: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           appBar: AppBar(
             title: const Text('Pagseguro Smart Flutter'),
@@ -33,13 +34,17 @@ class _MyAppState extends State<MyApp> {
               ),
               Tab(
                 child: Text("Transações"),
-              )
+              ),
+              Tab(
+                child: Text("Impressão"),
+              ),
             ]),
           ),
           body: TabBarView(
             children: [
               const PaymentPage(),
               Container(),
+              const PrinterPage(),
             ],
           ),
         ),

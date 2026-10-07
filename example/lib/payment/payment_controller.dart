@@ -37,7 +37,7 @@ class PaymentController extends PaymentHandler {
 
   @override
   void onAuthProgress(String message) {
-    BotToast.showLoading();
+    BotToast.showText(text: message);
   }
 
   @override

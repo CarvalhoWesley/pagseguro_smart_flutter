@@ -5,9 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Flutter",
+            "name": "Flutter (P2)",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "deviceId": "PBA1241H70445",
+        },
+        {
+            "name": "Flutter (GPOS780)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "0123abcd",
+        },
+        {
+            "name": "Flutter (GPOS780S)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "6301072646001588",
         }
     ]
 }

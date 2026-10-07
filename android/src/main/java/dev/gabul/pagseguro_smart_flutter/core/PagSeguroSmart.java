@@ -2,6 +2,8 @@ package dev.gabul.pagseguro_smart_flutter.core;
 import android.content.Context;
 import android.util.Log;
 
+import java.io.File;
+
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag;
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagAppIdentification;
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagCustomPrinterLayout;
@@ -21,6 +23,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 public class PagSeguroSmart {
   final PlugPag plugPag;
+  final Context mContext;
   final MethodChannel mChannel;
   PaymentsPresenter payment;
 
@@ -58,6 +61,7 @@ public class PagSeguroSmart {
 
   private static final String PRINTER_BASIC = "paymentPrinterBasic";
   private static final String PRINTER_FILE_PATH = "paymentPrinterFilePath";
+  private static final String PRINTER_BYTES = "paymentPrinterBytes";
 
   public PagSeguroSmart(Context context, MethodChannel channel) {
     PlugPag instancePlugPag = new PlugPag(context);
@@ -66,6 +70,7 @@ public class PagSeguroSmart {
     instancePlugPag.setPlugPagCustomPrinterLayout(customDialog);
     this.plugPag = instancePlugPag;
     this.mChannel = channel;
+    this.mContext = context;
   }
   public void initPayment(MethodCall call, MethodChannel.Result result) {
     if(call.method.equals(PRINTER_FILE)) {
@@ -90,6 +95,19 @@ public class PagSeguroSmart {
       PrinterPresenter printerPresenter = new PrinterPresenter(this.plugPag, this.mChannel);
       String filePath = call.argument("path");
       printerPresenter.printerByFilePath(filePath);
+    }
+
+    if(call.method.equals(PRINTER_BYTES)) {
+      PrinterPresenter printerPresenter = new PrinterPresenter(this.plugPag, this.mChannel);
+      byte[] bytes = call.argument("bytes");
+      // O arquivo é lido pelo serviço da PagSeguro (outro app), então usa o armazenamento externo do app
+      File printDir = this.mContext.getExternalFilesDir(null);
+      if (printDir == null) {
+        printDir = this.mContext.getCacheDir();
+      }
+      // Responde ao Flutter só quando a impressão termina, para que chamadas em sequência aguardem
+      printerPresenter.printerFromBytes(bytes, printDir, result);
+      return;
     }
 
     if (this.payment == null) {
