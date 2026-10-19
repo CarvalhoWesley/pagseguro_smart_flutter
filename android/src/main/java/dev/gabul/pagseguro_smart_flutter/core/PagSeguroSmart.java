@@ -10,6 +10,7 @@ import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagCustomPrinterLayout;
 import dev.gabul.pagseguro_smart_flutter.managers.UserDataManager;
 import dev.gabul.pagseguro_smart_flutter.nfc.NFCFragment;
 import dev.gabul.pagseguro_smart_flutter.nfc.NFCPresenter;
+import dev.gabul.pagseguro_smart_flutter.nfc.NfcRawHandler;
 import dev.gabul.pagseguro_smart_flutter.nfc.usecase.NFCUseCase;
 import dev.gabul.pagseguro_smart_flutter.payments.PaymentsPresenter;
 import dev.gabul.pagseguro_smart_flutter.printer.PrinterPresenter;
@@ -54,6 +55,11 @@ public class PagSeguroSmart {
   private static final String REWRITE_NFC = "paymentReWriteNfc";
   private static final String REFUND_NFC = "paymentReFundNfc";
   private static final String DEBIT_NFC = "paymentDebitNfc";
+  private static final String NFC_READ_BLOCK = "paymentNfcReadBlock";
+  private static final String NFC_WRITE_BLOCK = "paymentNfcWriteBlock";
+  private static final String NFC_ABORT = "paymentNfcAbort";
+  private static final String NFC_DEBUG_READ = "paymentNfcDebugRead";
+  private static final String NFC_READ_CARD_ID = "paymentNfcReadCardId";
 
   //Printer
   private static final String PRINTER_FILE = "paymentPrinterFile";
@@ -107,6 +113,28 @@ public class PagSeguroSmart {
       }
       // Responde ao Flutter só quando a impressão termina, para que chamadas em sequência aguardem
       printerPresenter.printerFromBytes(bytes, printDir, result);
+      return;
+    }
+
+    // NFC genérico: responde pelo próprio Future do Dart
+    if (call.method.equals(NFC_READ_BLOCK)) {
+      new NfcRawHandler(this.plugPag).readBlock(call.argument("block"), call.argument("key"), result);
+      return;
+    }
+    if (call.method.equals(NFC_WRITE_BLOCK)) {
+      new NfcRawHandler(this.plugPag).writeBlock(call.argument("block"), call.argument("data"), call.argument("key"), result);
+      return;
+    }
+    if (call.method.equals(NFC_READ_CARD_ID)) {
+      new NfcRawHandler(this.plugPag).readCardId(result);
+      return;
+    }
+    if (call.method.equals(NFC_DEBUG_READ)) {
+      new NfcRawHandler(this.plugPag).debugRead(call.argument("block"), call.argument("key"), result);
+      return;
+    }
+    if (call.method.equals(NFC_ABORT)) {
+      new NfcRawHandler(this.plugPag).abort(result);
       return;
     }
 
@@ -215,22 +243,28 @@ public class PagSeguroSmart {
       result.success(true);
     } else if(call.method.equals(READ_NFC)) {
       this.nfcPayment.readNFCCard(call.argument("idEvento"));
+      result.success(true);
     }
     else if(call.method.equals(WRITE_NFC)) {
       this.nfcPayment.writeNFCCard(call.argument("valor"), call.argument("nome"), call.argument("cpf"), call.argument("numeroTag"), call.argument("celular"), call.argument("aberto"), call.argument("idEvento"));
+      result.success(true);
     }
     else if(call.method.equals(REWRITE_NFC)) {
       this.nfcPayment.reWriteNFCCard(call.argument("valor"), call.argument("idEvento"));
+      result.success(true);
     }
 
     else if(call.method.equals(REFUND_NFC)) {
       this.nfcPayment.reFundNFCCard(call.argument("valor"), call.argument("idEvento"));
+      result.success(true);
     }
     else if(call.method.equals(FORMAT_NFC)) {
       this.nfcPayment.formatNFCCard();
+      result.success(true);
     }
     else if(call.method.equals(DEBIT_NFC)) {
       this.nfcPayment.debitNFCCard(call.argument("idEvento"),call.argument("valor"));
+      result.success(true);
     } else {
       result.notImplemented();
     }

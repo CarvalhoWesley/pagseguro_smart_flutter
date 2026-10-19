@@ -406,7 +406,8 @@ public class ActionResult {
     setReaderModel(result.getReaderModel());
     setNsu(result.getNsu());
     setAutoCode(result.getAutoCode());
-    setInstallments(result.getInstallments());
+    // 1.29.x devolve Character, 1.35.x devolve Integer
+    setInstallments(result.getInstallments() == null ? null : Integer.valueOf(String.valueOf(result.getInstallments())));
     setOriginalAmount(result.getOriginalAmount());
     setBuyerName(result.getBuyerName());
     setPaymentType(result.getPaymentType());

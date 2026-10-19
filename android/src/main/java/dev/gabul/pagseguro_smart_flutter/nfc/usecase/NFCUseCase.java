@@ -54,7 +54,7 @@ public class NFCUseCase {
 
                 if(cardData.getSlot() == NFCConstants.CARD_OPENED_BLOCK) {
 
-                    PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), MifareClassic.KEY_DEFAULT);
+                    PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), new byte[16]);
                     PlugPagNFCResult resultRead = mPlugPag.readNFCCardDirectly(readCardData);
 
                     if (resultRead.getResult() == 1) {
@@ -121,11 +121,11 @@ public class NFCUseCase {
                     return;
                 }
 
-                PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), MifareClassic.KEY_DEFAULT);
+                PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), new byte[16]);
                 PlugPagNFCResult resultRead = mPlugPag.readNFCCardDirectly(readCardData);
                 
 
-                PlugPagSimpleNFCData readCardDataTag = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, NFCConstants.TAG_BLOCK, MifareClassic.KEY_DEFAULT);
+                PlugPagSimpleNFCData readCardDataTag = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, NFCConstants.TAG_BLOCK, new byte[16]);
                 PlugPagNFCResult resultReadTag = mPlugPag.readNFCCardDirectly(readCardDataTag);
 
                
@@ -186,7 +186,7 @@ public class NFCUseCase {
 //
 //                for (Integer block : blocks ) {
 //
-//                    PlugPagSimpleNFCData readCardDataFinal = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, block, MifareClassic.KEY_DEFAULT);
+//                    PlugPagSimpleNFCData readCardDataFinal = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, block, new byte[16]);
 //                    PlugPagNFCResult resultReadFinal = mPlugPag.readNFCCardDirectly(readCardDataFinal);
 //
 //                    resultReadstring.append(Utils.removeAsterisco(new String(resultReadFinal.getSlots()[block].get("data"))));
@@ -244,7 +244,7 @@ public class NFCUseCase {
                     return;
                 }
 
-                PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), MifareClassic.KEY_DEFAULT);
+                PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), new byte[16]);
                 PlugPagNFCResult resultRead = mPlugPag.readNFCCardDirectly(readCardData);
 
                 String resultReadstring = Utils.removeAsterisco(new String(resultRead.getSlots()[cardData.getSlot()].get("data")));
@@ -297,7 +297,7 @@ public class NFCUseCase {
 //
 //                for (Integer block : blocks ) {
 //
-//                    PlugPagSimpleNFCData readCardDataFinal = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, block, MifareClassic.KEY_DEFAULT);
+//                    PlugPagSimpleNFCData readCardDataFinal = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, block, new byte[16]);
 //                    PlugPagNFCResult resultReadFinal = mPlugPag.readNFCCardDirectly(readCardDataFinal);
 //
 //                    resultReadstring.append(Utils.removeAsterisco(new String(resultReadFinal.getSlots()[block].get("data"))));
@@ -353,7 +353,7 @@ public class NFCUseCase {
                     return;
                 }
 
-                PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), MifareClassic.KEY_DEFAULT);
+                PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), new byte[16]);
                 PlugPagNFCResult resultRead = mPlugPag.readNFCCardDirectly(readCardData);
 
                 String resultReadstring = "";
@@ -448,26 +448,24 @@ public class NFCUseCase {
                 return;
             }
 
-            PlugPagSimpleNFCData cardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, block, MifareClassic.KEY_DEFAULT);
+            PlugPagSimpleNFCData cardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, block, new byte[16]);
 
             PlugPagNFCResult result = mPlugPag.readNFCCardDirectly(cardData);
 
-//            if(block.equals(NFCConstants.EVENT_ID_BLOCK)) {
-//
-//                String idEventoCard = Utils.removeAsterisco(new String(result.getSlots()[block].get("data")));
-//
-//                boolean vazio = Arrays.equals(idEventoCard.getBytes(), new byte[16]);
-//
-//                if(!vazio) {
-//                    if(!idEventoCard.equals(idEvento)) {
-//                        mPlugPag.setLed(new PlugPagLedData(PlugPagLedData.LED_RED));
-//                        emitter.onError(new PlugPagException(String.format("evento_nao_compativel", cardData.getSlot())));
-//                        emitter.onComplete();
-//                        return;
-//                    }
-//                }
-//
-//            }
+            // Cartão de outro evento: recusa. Cartão sem evento gravado (bloco zerado) é aceito.
+            if (result.getResult() == 1 && block.equals(NFCConstants.EVENT_ID_BLOCK) && idEvento != null) {
+                byte[] eventData = result.getSlots()[block].get("data");
+                boolean vazio = Arrays.equals(eventData, new byte[eventData.length]);
+                String idEventoCard = Utils.removeAsterisco(new String(eventData)).trim();
+
+                if (!vazio && !idEventoCard.equals(idEvento.trim())) {
+                    mPlugPag.setLed(new PlugPagLedData(PlugPagLedData.LED_RED));
+                    mPlugPag.stopNFCCardDirectly();
+                    emitter.onError(new PlugPagException("evento_nao_compativel"));
+                    emitter.onComplete();
+                    return;
+                }
+            }
 
             if (result.getResult() == 1){
                 Log.d(NFCUseCase.class.getSimpleName(), Utils.convertBytes2String(result.getSlots()[result.getStartSlot()].get("data"), false));

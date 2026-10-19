@@ -64,7 +64,7 @@ public class NewUserUseCase {
     }
 
     private Observable<Integer> writeCardEventIdInNfcCard(UserData userData){
-        return mNfcUseCase.writeNfc(buildCardData(NFCConstants.EVENT_ID_BLOCK, userData.getActive()));
+        return mNfcUseCase.writeNfc(buildCardData(NFCConstants.EVENT_ID_BLOCK, userData.getIdEvento()));
     }
 
     private Observable<Integer> writeOpenValueInNfcCard(UserData userData){

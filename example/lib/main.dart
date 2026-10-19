@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:bot_toast/bot_toast.dart';
 
+import 'nfc/nfc_page.dart';
 import 'payment/payment_page.dart';
 import 'printer/printer_page.dart';
 
@@ -24,7 +25,7 @@ class _MyAppState extends State<MyApp> {
       builder: BotToastInit(), //1. call BotToastInit
 
       home: DefaultTabController(
-        length: 3,
+        length: 4,
         child: Scaffold(
           appBar: AppBar(
             title: const Text('Pagseguro Smart Flutter'),
@@ -38,6 +39,9 @@ class _MyAppState extends State<MyApp> {
               Tab(
                 child: Text("Impressão"),
               ),
+              Tab(
+                child: Text("NFC"),
+              ),
             ]),
           ),
           body: TabBarView(
@@ -45,6 +49,7 @@ class _MyAppState extends State<MyApp> {
               const PaymentPage(),
               Container(),
               const PrinterPage(),
+              const NfcPage(),
             ],
           ),
         ),

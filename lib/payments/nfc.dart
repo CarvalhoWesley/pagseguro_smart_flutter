@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/services.dart';
 import 'package:pagseguro_smart_flutter/payments/handler/nfc_handler.dart';
 import 'package:pagseguro_smart_flutter/payments/utils/payment_types.dart';
@@ -60,6 +63,54 @@ class Nfc {
   Future<bool> debitNfc(idEvento, valor) async {
     await channel.invokeMethod(PaymentTypeCall.DEBIT_NFC.method, {"idEvento": idEvento, "valor": valor});
     return true;
+  }
+
+  //NFC GENÉRICO (Mifare Classic) — retorna direto no Future, sem usar o NfcHandler.
+  // Em caso de erro lança PlatformException (code: INVALID_BLOCK, INVALID_DATA, NFC_ERROR, READ_ERROR, WRITE_ERROR).
+
+  /// Lê os 16 bytes do [block] (0..63). [key] é a chave de 6 bytes do setor (padrão FF FF FF FF FF FF).
+  Future<Uint8List> readBlock(int block, {Uint8List? key}) async {
+    final data = await channel.invokeMethod<Uint8List>(PaymentTypeCall.NFC_READ_BLOCK.method, {"block": block, "key": key});
+    return data!;
+  }
+
+  /// Grava até 16 bytes no [block] (completados com zeros). Blocos 0 e trailers (3, 7, 11...) são recusados.
+  Future<void> writeBlock(int block, Uint8List data, {Uint8List? key}) async {
+    await channel.invokeMethod(PaymentTypeCall.NFC_WRITE_BLOCK.method, {"block": block, "data": data, "key": key});
+  }
+
+  /// Atalho: lê o bloco como texto (UTF-8), removendo os zeros do final.
+  Future<String> readBlockText(int block, {Uint8List? key}) async {
+    final data = await readBlock(block, key: key);
+    var end = data.length;
+    while (end > 0 && data[end - 1] == 0) {
+      end--;
+    }
+    return utf8.decode(data.sublist(0, end), allowMalformed: true);
+  }
+
+  /// Atalho: grava texto (UTF-8, máx. 16 bytes) no bloco.
+  Future<void> writeBlockText(int block, String text, {Uint8List? key}) {
+    return writeBlock(block, Uint8List.fromList(utf8.encode(text)), key: key);
+  }
+
+  /// Lê o identificador único (UID) do cartão, em hex maiúsculo (ex.: "17401059").
+  /// Funciona com qualquer cartão/pulseira NFC tipo A, inclusive cartões com processador.
+  /// Lança PlatformException com code NO_CARD se nenhum cartão for aproximado.
+  Future<String> readCardId() async {
+    final id = await channel.invokeMethod<String>(PaymentTypeCall.NFC_READ_CARD_ID.method);
+    return id!;
+  }
+
+  /// Diagnóstico: devolve um texto com tudo o que o SDK retornou ao ler o [block].
+  Future<String> debugReadBlock(int block, {Uint8List? key}) async {
+    final r = await channel.invokeMethod<String>(PaymentTypeCall.NFC_DEBUG_READ.method, {"block": block, "key": key});
+    return r ?? '';
+  }
+
+  /// Cancela a espera pelo cartão.
+  Future<void> abortNfc() async {
+    await channel.invokeMethod(PaymentTypeCall.NFC_ABORT.method);
   }
 
   Future<dynamic> _callHandler(MethodCall call) async {

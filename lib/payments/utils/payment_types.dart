@@ -133,7 +133,7 @@ extension PaymentTypeHandlerExt on PaymentTypeHandler {
 }
 
 //fixed payment type to call from channel
-enum PaymentTypeCall { CREDIT, CREDIT_PARC, DEBIT, PIX, VOUCHER, ABORT, LAST_TRANSACTION, REFUND, ACTIVEPINPAD, PINPAD_AUTHENTICATED, READ_NFC, WRITE_NFC, REWRITE_NFC, REFUND_NFC, DEBIT_NFC, FORMAT_NFC, PRINTER_FILE, START_PAYMENT, PRINTER, PRINTER_BASIC, PRINTER_FILE_PATH, PRINTER_BYTES, REBOOT, BEEP }
+enum PaymentTypeCall { CREDIT, CREDIT_PARC, DEBIT, PIX, VOUCHER, ABORT, LAST_TRANSACTION, REFUND, ACTIVEPINPAD, PINPAD_AUTHENTICATED, READ_NFC, WRITE_NFC, REWRITE_NFC, REFUND_NFC, DEBIT_NFC, FORMAT_NFC, PRINTER_FILE, START_PAYMENT, PRINTER, PRINTER_BASIC, PRINTER_FILE_PATH, PRINTER_BYTES, REBOOT, BEEP, NFC_READ_BLOCK, NFC_WRITE_BLOCK, NFC_ABORT, NFC_DEBUG_READ, NFC_READ_CARD_ID }
 
 enum PaymentTypeCredit {
   SALESMAN,
@@ -187,6 +187,16 @@ extension PaymentTypeCallExt on PaymentTypeCall {
         return "paymentFormatNfc";
       case PaymentTypeCall.REFUND_NFC:
         return "paymentReFundNfc";
+      case PaymentTypeCall.NFC_READ_BLOCK:
+        return "paymentNfcReadBlock";
+      case PaymentTypeCall.NFC_WRITE_BLOCK:
+        return "paymentNfcWriteBlock";
+      case PaymentTypeCall.NFC_ABORT:
+        return "paymentNfcAbort";
+      case PaymentTypeCall.NFC_DEBUG_READ:
+        return "paymentNfcDebugRead";
+      case PaymentTypeCall.NFC_READ_CARD_ID:
+        return "paymentNfcReadCardId";
       case PaymentTypeCall.PRINTER_FILE:
         return "paymentPrinterFile";
       case PaymentTypeCall.PRINTER:
