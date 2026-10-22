@@ -102,6 +102,13 @@ class Nfc {
     return id!;
   }
 
+  /// Diagnóstico: lê os 16 setores (64 blocos) do Mifare Classic 1K e devolve um relatório em texto
+  /// (hex + texto de cada bloco). Setores com outra chave aparecem como falha de autenticação.
+  Future<String> debugReadAllSectors({Uint8List? key}) async {
+    final r = await channel.invokeMethod<String>(PaymentTypeCall.NFC_DEBUG_READ_ALL.method, {"key": key});
+    return r ?? '';
+  }
+
   /// Diagnóstico: devolve um texto com tudo o que o SDK retornou ao ler o [block].
   Future<String> debugReadBlock(int block, {Uint8List? key}) async {
     final r = await channel.invokeMethod<String>(PaymentTypeCall.NFC_DEBUG_READ.method, {"block": block, "key": key});

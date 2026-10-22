@@ -59,6 +59,7 @@ public class PagSeguroSmart {
   private static final String NFC_WRITE_BLOCK = "paymentNfcWriteBlock";
   private static final String NFC_ABORT = "paymentNfcAbort";
   private static final String NFC_DEBUG_READ = "paymentNfcDebugRead";
+  private static final String NFC_DEBUG_READ_ALL = "paymentNfcDebugReadAll";
   private static final String NFC_READ_CARD_ID = "paymentNfcReadCardId";
 
   //Printer
@@ -127,6 +128,10 @@ public class PagSeguroSmart {
     }
     if (call.method.equals(NFC_READ_CARD_ID)) {
       new NfcRawHandler(this.plugPag).readCardId(result);
+      return;
+    }
+    if (call.method.equals(NFC_DEBUG_READ_ALL)) {
+      new NfcRawHandler(this.plugPag).debugReadAll(call.argument("key"), result);
       return;
     }
     if (call.method.equals(NFC_DEBUG_READ)) {

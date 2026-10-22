@@ -123,16 +123,13 @@ public class NFCUseCase {
 
                 PlugPagSimpleNFCData readCardData = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, cardData.getSlot(), new byte[16]);
                 PlugPagNFCResult resultRead = mPlugPag.readNFCCardDirectly(readCardData);
-                
 
-                PlugPagSimpleNFCData readCardDataTag = new PlugPagSimpleNFCData(PlugPagNearFieldCardData.ONLY_M, NFCConstants.TAG_BLOCK, new byte[16]);
-                PlugPagNFCResult resultReadTag = mPlugPag.readNFCCardDirectly(readCardDataTag);
-
-               
+                // Só o setor de cardData.getSlot() está autenticado: ler o bloco da tag (setor 1)
+                // a partir de outro setor gera NF02. A tag é lida quando o próprio slot é o da tag.
                 String resultReadstring = "";
 
-                if(cardData.getSlot() == NFCConstants.TAG_BLOCK) {
-                    resultReadstring = Utils.removeAsterisco(new String(resultReadTag.getSlots()[cardData.getSlot()].get("data")));
+                if(cardData.getSlot() == NFCConstants.TAG_BLOCK && resultRead.getResult() == 1) {
+                    resultReadstring = Utils.removeAsterisco(new String(resultRead.getSlots()[cardData.getSlot()].get("data")));
                 }
 
                 System.out.println("resultReadstring");

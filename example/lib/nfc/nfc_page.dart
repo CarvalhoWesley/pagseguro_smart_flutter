@@ -145,6 +145,11 @@ class _NfcPageState extends State<NfcPage> implements NfcHandler {
           _botao('Ler texto', () => _run('Ler bloco $_blocoNum', () => _nfc.readBlockText(_blocoNum, key: _parseKey()).then((t) => '"$t"'))),
           _botao('Ler bytes', () => _run('Ler bloco $_blocoNum', () => _nfc.readBlock(_blocoNum, key: _parseKey()).then(_toHex))),
           _botao('Gravar texto', () => _run('Gravar bloco $_blocoNum', () => _nfc.writeBlockText(_blocoNum, _texto.text, key: _parseKey()).then((_) => 'gravado'))),
+          _botao('Diagnóstico (todos setores)', () => _run('Diagnóstico completo', () async {
+                final relatorio = await _nfc.debugReadAllSectors(key: _parseKey());
+                _mostrarRelatorio(relatorio);
+                return 'ver dialog';
+              })),
           _botao('Diagnóstico', () => _run('Diagnóstico bloco $_blocoNum', () => _nfc.debugReadBlock(_blocoNum, key: _parseKey()))),
           _botao('Cancelar', () => _run('Cancelar', () => _nfc.abortNfc().then((_) => 'enviado'))),
         ]),
@@ -189,6 +194,29 @@ class _NfcPageState extends State<NfcPage> implements NfcHandler {
         style: perigo ? ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white) : null,
         child: Text(t),
       );
+
+  void _mostrarRelatorio(String texto) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Setores do cartão'),
+        content: SingleChildScrollView(
+          child: SelectableText(texto, style: const TextStyle(fontFamily: 'monospace', fontSize: 11)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: texto));
+              Navigator.pop(c);
+            },
+            child: const Text('Copiar'),
+          ),
+          TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK')),
+        ],
+      ),
+    );
+  }
 
   void _mostrarId(String id) {
     if (!mounted) return;

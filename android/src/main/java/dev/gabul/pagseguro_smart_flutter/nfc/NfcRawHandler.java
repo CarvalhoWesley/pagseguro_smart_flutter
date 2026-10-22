@@ -149,6 +149,78 @@ public class NfcRawHandler {
     }
   }
 
+  /**
+   * Diagnóstico completo: lê os 16 setores (64 blocos) do Mifare Classic 1K numa única aproximação.
+   * Um setor que falhe (chave diferente, por exemplo) não interrompe os demais.
+   */
+  public void debugReadAll(byte[] key, MethodChannel.Result result) {
+    byte[] authKey = key != null ? key : MifareClassic.KEY_DEFAULT;
+    EXECUTOR.execute(() -> {
+      StringBuilder sb = new StringBuilder();
+      try {
+        int start = mPlugPag.startNFCCardDirectly();
+        PlugPagNFCInfosResultDirectly card = detectQuietly(PlugPagNearFieldCardData.ONLY_M);
+        sb.append("start=").append(start).append(" detect=").append(card == null ? "null" : card.getResult());
+        if (card == null || card.getResult() != 1 || card.getSerialNumber() == null) {
+          sb.append("\nCartão não detectado");
+        } else {
+          sb.append(" UID=").append(toHex(card.getSerialNumber()));
+          for (int sector = 0; sector < 16; sector++) {
+            int first = sector * 4;
+            sb.append("\n\nSetor ").append(sector);
+            int auth;
+            try {
+              auth = mPlugPag.justAuthNfcDirectly(new PlugPagNFCAuthDirectly((byte) first, authKey, EM1KeyType.TYPE_A, card.getSerialNumber()));
+            } catch (Exception e) {
+              auth = -1;
+            }
+            if (auth != 1) {
+              sb.append(": falha na autenticação (auth=").append(auth).append(")");
+              // Após falha de auth o Mifare exige nova seleção do cartão
+              PlugPagNFCInfosResultDirectly again = detectQuietly(PlugPagNearFieldCardData.ONLY_M);
+              if (again != null && again.getSerialNumber() != null) card = again;
+              continue;
+            }
+            for (int block = first; block < first + 4; block++) {
+              sb.append("\n  ").append(String.format("%02d", block)).append(": ");
+              try {
+                PlugPagNFCResult read = mPlugPag.readNFCCardDirectly(readRequest(block));
+                byte[] d = read == null || read.getResult() != 1 ? null : extractData(read, block);
+                if (d == null) {
+                  sb.append("erro na leitura").append(read == null ? "" : " (" + read.getErrorCode() + ")");
+                } else {
+                  sb.append(toHexCompact(d)).append("  ").append(toAscii(d));
+                }
+              } catch (Exception e) {
+                sb.append("EXCEPTION ").append(e.getMessage());
+              }
+            }
+          }
+        }
+      } catch (Exception e) {
+        sb.append("\nEXCEPTION ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
+      } finally {
+        stopQuietly();
+      }
+      String dump = sb.toString();
+      Log.d(TAG, dump);
+      mMainHandler.post(() -> result.success(dump));
+    });
+  }
+
+  private static String toHexCompact(byte[] data) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : data) sb.append(String.format("%02X", b));
+    return sb.toString();
+  }
+
+  // Caracteres imprimíveis como texto, o resto como "."
+  private static String toAscii(byte[] data) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : data) sb.append(b >= 32 && b < 127 ? (char) b : '.');
+    return sb.toString();
+  }
+
   /** Diagnóstico: executa a sessão passo a passo e devolve o que o SDK retornou em cada etapa. */
   public void debugRead(Integer block, byte[] key, MethodChannel.Result result) {
     byte[] authKey = key != null ? key : MifareClassic.KEY_DEFAULT;
