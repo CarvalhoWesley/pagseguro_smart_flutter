@@ -52,6 +52,7 @@ public class PagSeguroSmart {
   private static final String WRITE_NFC = "paymentWriteNfc";
   private static final String READ_NFC = "paymentReadNfc";
   private static final String FORMAT_NFC = "paymentFormatNfc";
+  private static final String FORMAT_ALL_NFC = "paymentFormatAllNfc";
   private static final String REWRITE_NFC = "paymentReWriteNfc";
   private static final String REFUND_NFC = "paymentReFundNfc";
   private static final String DEBIT_NFC = "paymentDebitNfc";
@@ -265,6 +266,10 @@ public class PagSeguroSmart {
     }
     else if(call.method.equals(FORMAT_NFC)) {
       this.nfcPayment.formatNFCCard();
+      result.success(true);
+    }
+    else if(call.method.equals(FORMAT_ALL_NFC)) {
+      this.nfcPayment.formatAllNFCCard();
       result.success(true);
     }
     else if(call.method.equals(DEBIT_NFC)) {

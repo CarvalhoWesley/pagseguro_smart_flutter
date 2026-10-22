@@ -1,3 +1,13 @@
+## 1.7.0
+
+- Adiciona `formatAllNfc`: zera os 47 blocos de dados do Mifare Classic 1K numa única aproximação, autenticando setor por setor (não altera o bloco 0 nem os trailers). Em caso de falha informa o setor e quantos blocos já foram zerados
+- `formatNfc` continua zerando apenas os blocos do cartão de evento
+- `writeBlock`/`writeBlockText` relêem o bloco na mesma aproximação e conferem os 16 bytes; se não bater, lançam `WRITE_NOT_CONFIRMED`
+- `writeNfc`, `reWriteNfc`, `debitNfc` e `refundNfc` conferem cada bloco gravado na mesma sessão; divergência chega no `showError...` como "Gravação não confirmada no bloco N"
+- Corrige recarga NFC (`reWriteNfc`): lia o bloco da tag sem autenticar o setor dele, causando `NF02`
+- Adiciona `debugReadAllSectors` (diagnóstico dos 16 setores)
+- App de exemplo reorganizado: navegação por áreas (Pagamento, NFC, Logs), log central, dialog de status do pagamento, resumo do cartão de evento lido (relido automaticamente após gravar) e botões Formatar / Formatar tudo
+
 ## 1.6.0
 
 - Adiciona API NFC genérica com retorno via `Future`: `readCardId`, `readBlock`, `writeBlock`, `readBlockText`, `writeBlockText`, `abortNfc` e `debugReadBlock`

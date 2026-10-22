@@ -102,6 +102,14 @@ public class NfcRawHandler {
           reply(result, "WRITE_ERROR", "Erro ao gravar o bloco " + block);
           return;
         }
+
+        // Relê o mesmo bloco na mesma aproximação (setor ainda autenticado) e confere os 16 bytes
+        PlugPagNFCResult read = mPlugPag.readNFCCardDirectly(readRequest(block));
+        byte[] actual = read != null && read.getResult() == 1 ? extractData(read, block) : null;
+        if (actual == null || !Arrays.equals(padded, Arrays.copyOf(actual, BLOCK_SIZE))) {
+          reply(result, "WRITE_NOT_CONFIRMED", "Gravação não confirmada: lido " + (actual == null ? "nada" : toHex(actual)));
+          return;
+        }
         mMainHandler.post(() -> result.success(true));
       } catch (Exception e) {
         reply(result, "NFC_ERROR", e.getClass().getSimpleName() + ": " + e.getMessage());

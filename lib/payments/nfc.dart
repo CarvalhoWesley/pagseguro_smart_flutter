@@ -55,8 +55,19 @@ class Nfc {
     return true;
   }
 
+  /// Zera só os blocos do cartão de evento (1, 2, 4, 5, 6, 8, 9 e 12).
+  /// Resultado em showSuccessFormat / showErrorFormat do NfcHandler.
   Future<bool> formatNfc() async {
     await channel.invokeMethod(PaymentTypeCall.FORMAT_NFC.method);
+    return true;
+  }
+
+  /// Zera todos os 47 blocos de dados do Mifare Classic 1K numa única aproximação.
+  /// Não altera o bloco 0 nem os trailers (chaves e permissões).
+  /// Resultado em showSuccessFormat (quantidade de blocos zerados) / showErrorFormat
+  /// (informa o setor que falhou e quantos blocos já foram zerados).
+  Future<bool> formatAllNfc() async {
+    await channel.invokeMethod(PaymentTypeCall.FORMAT_ALL_NFC.method);
     return true;
   }
 
@@ -75,6 +86,8 @@ class Nfc {
   }
 
   /// Grava até 16 bytes no [block] (completados com zeros). Blocos 0 e trailers (3, 7, 11...) são recusados.
+  /// Depois de gravar, relê o bloco na mesma aproximação e confere os 16 bytes: se não bater,
+  /// lança PlatformException com code WRITE_NOT_CONFIRMED (a mensagem traz o que foi lido).
   Future<void> writeBlock(int block, Uint8List data, {Uint8List? key}) async {
     await channel.invokeMethod(PaymentTypeCall.NFC_WRITE_BLOCK.method, {"block": block, "data": data, "key": key});
   }

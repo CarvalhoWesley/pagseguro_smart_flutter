@@ -248,6 +248,7 @@ public class NFCPresenter  {
                 );
     }
 
+    // Zera só os blocos do layout do evento
     public void formatNFCCard() {
 
         // using ArrayList to have no block limit
@@ -269,6 +270,29 @@ public class NFCPresenter  {
                 .subscribe(
                         result -> clearBlocks(blocks),
                         throwable -> mFragment.showErrorReWrite(throwable.getMessage())
+                );
+    }
+
+    // Zera todos os blocos de dados do cartão (47) numa única aproximação
+    public void formatAllNFCCard() {
+
+        mSubscribe = mUseCase.controlLed(new PlugPagLedData(PlugPagLedData.LED_BLUE))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        result -> formatAllDataBlocks(),
+                        throwable -> mFragment.showErrorFormat(throwable.getMessage())
+                );
+    }
+
+    private void formatAllDataBlocks() {
+
+        mSubscribe = mUseCase.formatAllDataBlocks()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        this::showSuccessFormat,
+                        throwable -> mFragment.showErrorFormat(throwable.getMessage())
                 );
     }
 
