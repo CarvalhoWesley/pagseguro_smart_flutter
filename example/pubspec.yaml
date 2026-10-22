@@ -4,7 +4,7 @@ description: Demonstrates how to use the pagseguro_smart_flutter plugin.
 publish_to: 'none' 
 
 environment:
-  sdk: ">=2.16.2 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -14,8 +14,6 @@ dependencies:
     path: ../
 
   cupertino_icons: ^1.0.2
-  bot_toast: ^4.0.4
-  flutter_masked_text2: ^0.9.1
   path_provider: ^2.1.1
 
 dev_dependencies:
